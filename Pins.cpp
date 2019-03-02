@@ -1,17 +1,12 @@
 /*
- * init2.cpp
+ * Pins.cpp
  *
- *  Created on: 2018/09
+ *  Created on: 2019/03/02
  *      Author: mutsuro
  */
 
-#include "init2.h"
-
-/*----------------------
- -----機能選択するピン-----
- ----------------------*/
-Pspad ps(p17, p18, p19, p20);
-
+#include "Pins.h"
+#include "functions.h"
 
 
 /*----------------------
@@ -23,6 +18,21 @@ DigitalOut led1(LED2);
 DigitalOut led2(LED3);
 DigitalOut led3(LED4);
 Timer AdCycle;
+
+
+/*----------------------
+ -----機能選択するピン-----
+ ----------------------*/
+CAN can(p9, p10);
+Pspad ps(p17, p18, p19, p20);
+
+
+/************************
+ * 		駆動系/その他		*
+ ************************/
+PwmOut sv_gerege(p23);
+DigitalIn sw_gerege(p5);
+PhotoelectricSensor kouden(p6);
 
 
 
@@ -72,5 +82,24 @@ int L1;
 int L2;
 
 void psCommand(){
+    ps.PsRead();
 
+    Rx = ps.right_x;
+    Ry = ps.right_y;
+    if(!ps.ANALOG_MODE)Rx = Ry = 0;
+
+    up = ps.BUTTON.BIT.UP;
+    down = ps.BUTTON.BIT.DOWN;
+
+    lim_stick(&Rx, &Ry);
+}
+
+
+float lim_stick(int *rx, int *ry){
+	double theta = atan2((*ry), (*rx));
+	if(sqrt2((*rx), (*ry))>ANALOG_MAX){
+		(*rx) = (int)(ANALOG_MAX*cos(theta));
+		(*ry) = (int)(ANALOG_MAX*sin(theta));
+	}
+	return theta;
 }

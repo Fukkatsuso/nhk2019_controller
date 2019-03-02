@@ -1,23 +1,20 @@
 /*
- * init2.h
+ * Pins.h
  *
- *  Created on: 2018/09
+ *  Created on: 2019/03/02
  *      Author: mutsuro
  */
-#ifndef INIT2_H_
-#define INIT2_H_
+
+#ifndef PINS_H_
+#define PINS_H_
 
 #include "mbed.h"
+#include "PhotoelectricSensor.h"
 #include "pspad.h"
 
-#define CYCLE 5000 //動作周期(us)
-
-
-/*----------------------
- -----機能選択するピン-----
- ----------------------*/
-extern Pspad ps;
-
+//#define CYCLE 5000 //動作周期(us)
+#define ANALOG_MAX 128
+#define ANALOG_MARGIN 45
 
 
 /*----------------------
@@ -29,6 +26,23 @@ extern DigitalOut led1;
 extern DigitalOut led2;
 extern DigitalOut led3;
 extern Timer AdCycle; //AdjustCycleで使うタイマ
+
+
+/*----------------------
+ -----機能選択するピン-----
+ ----------------------*/
+extern CAN can;
+extern PhotoelectricSensor kouden_Mt;
+extern Pspad ps;
+
+
+/************************
+ * 		駆動系/その他		*
+ ************************/
+extern PwmOut sv_gerege;
+extern DigitalIn sw_gerege;
+extern PhotoelectricSensor kouden;
+
 
 
 /*----------------------
@@ -55,7 +69,8 @@ extern int R2;
 extern int L1;
 extern int L2;
 
-void psCommand();
+extern void psCommand();
+extern float lim_stick(int *rx, int *ry);
 
-#endif /* INIT2_H_ */
 
+#endif /* PINS_H_ */

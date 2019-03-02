@@ -24,8 +24,9 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-QEI \
 . \
+QEI \
+Walk/CANs \
 mbed-src/common \
 mbed-src/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_CR \
 mbed-src/targets/cmsis/TARGET_NXP/TARGET_LPC176X \
