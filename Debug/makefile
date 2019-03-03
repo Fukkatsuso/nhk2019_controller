@@ -13,6 +13,7 @@ RM := rm -rf
 -include mbed-src/targets/cmsis/TARGET_NXP/TARGET_LPC176X/subdir.mk
 -include mbed-src/common/subdir.mk
 -include Walk/CANs/subdir.mk
+-include Walk/subdir.mk
 -include QEI/subdir.mk
 -include subdir.mk
 -include objects.mk
