@@ -30,6 +30,8 @@ public:
 		WaitMountainUrtuu,//待機
 		GetSign,//非接触の合図
 		Start2,//歩行開始
+		StartClimb1,//Front登山開始
+		StartClimb2,//Rear
 		MountainArea,//登山
 		UukhaiZone,//ウーハイゾーン
 		Uukhai,//ウーハイ
@@ -45,12 +47,15 @@ public:
 	};
 
 	MRMode(enum Area area_initial, CANSender *can_sender);
+	void set_initial();
+	void set(enum Area area);
 	void send();
 	int get_now();
 
 private:
 	CANSender *can_sender;
 	Area now;
+	Area initial;
 };
 
 

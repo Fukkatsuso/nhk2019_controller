@@ -12,6 +12,17 @@ MRMode::MRMode(enum Area area_initial, CANSender *can_sender)
 {
 	this->can_sender = can_sender;
 	now = area_initial;
+	initial = area_initial;
+}
+
+void MRMode::set_initial()
+{
+	now = initial;
+}
+
+void MRMode::set(enum Area area)
+{
+	now = area;
 }
 
 void MRMode::send()

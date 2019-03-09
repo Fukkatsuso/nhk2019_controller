@@ -14,7 +14,7 @@
 
 //#define CYCLE 5000 //動作周期(us)
 #define ANALOG_MAX 128
-#define ANALOG_MARGIN 45
+#define ANALOG_MARGIN 50
 
 
 /*----------------------
