@@ -3,9 +3,12 @@
  * speed, direction
  *
  * ◯	:最初
- * ×	:SandDune
+ * ×	:SandDuneFront
  * △	:Tussock1
  * □	:Start2
+ *
+ * SandDuneFront & ↓ :SandDuneRear
+ * SandDuneRear & ↑ :最初
  *
  * Start2 		& ↑	:StartClimb1
  * StartClimb1 	& ↓	:StartClimb2
@@ -44,6 +47,26 @@ int main(){
 
 		mode_command();
 
+		switch(MRmode.get_now()){
+		case MRMode::GobiArea:
+			speed_max = 140;//170;//160;//80;//55;//75;//120;
+			break;
+		case MRMode::SandDuneFront:
+			speed_max = 350;//80;//120;//80;//normal-trot
+			break;
+		case MRMode::SandDuneRear:
+			speed_max = 350;//80;//120;//80;//normal-trot
+			break;
+		case MRMode::Tussock1:
+			speed_max = 80;
+			break;
+		case MRMode::Start2:
+			speed_max = 90;
+			break;
+		case MRMode::StartClimb1:
+			speed_max = 300*4.0/3.0;//300;//trot
+		}
+
 		can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Speed), speed);
 		can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Direction), direction);
 
@@ -59,19 +82,29 @@ int main(){
 void mode_command(){
 	//課題突入
 	if		(ps.BUTTON.BIT.MARU) 	MRmode.set_initial();
-	else if (ps.BUTTON.BIT.BATU) 	MRmode.set(MRMode::SandDune);
+	else if (ps.BUTTON.BIT.BATU) 	MRmode.set(MRMode::SandDuneFront);
 	else if (ps.BUTTON.BIT.SANKAKU) MRmode.set(MRMode::Tussock1);
 	else if (ps.BUTTON.BIT.SIKAKU)	MRmode.set(MRMode::Start2);
+
+	int mrmode = MRmode.get_now();
+	//段差越え:最初は前足だけ上げるモード。DOWN押すと後ろ足だけ上げるモード。次いでUP押すと初期モードに。
+	if(mrmode==MRMode::SandDuneFront){
+		if(ps.BUTTON.BIT.DOWN)MRmode.set(MRMode::SandDuneRear);
+	}
+	else if(mrmode==MRMode::SandDuneRear){
+		if(ps.BUTTON.BIT.UP)MRmode.set_initial();
+	}
 	//登山中コマンド
-	if(MRmode.get_now()==MRMode::Start2){
+	if(mrmode==MRMode::Start2){
 		if(ps.BUTTON.BIT.UP)MRmode.set(MRMode::StartClimb1);
 	}
-	else if(MRmode.get_now()==MRMode::StartClimb1){
+	else if(mrmode==MRMode::StartClimb1){
 		if(ps.BUTTON.BIT.DOWN)MRmode.set(MRMode::StartClimb2);
 	}
-	else if(MRmode.get_now()==MRMode::StartClimb2){
+	else if(mrmode==MRMode::StartClimb2){
 		if(ps.BUTTON.BIT.LEFT)MRmode.set(MRMode::MountainArea);
 	}
+
 	//送信
 	can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Area), MRmode.get_now());
 
@@ -83,16 +116,21 @@ void mode_command(){
 
 void walk_command(float *speed, float *direction, float speed_max){
 	float theta;
-	if((-ANALOG_MARGIN<Ry && Ry<ANALOG_MARGIN) && (-ANALOG_MARGIN<Rx && Rx<ANALOG_MARGIN)){
-		theta = 0;
-		Ry = 0;
-		Rx = 0;
-	}
-	else theta = atan2(Rx, Ry);
+//	if((-ANALOG_MARGIN<Ry && Ry<ANALOG_MARGIN) && (-ANALOG_MARGIN<Rx && Rx<ANALOG_MARGIN)){
+//		theta = 0;
+//		Ry = 0;
+//		Rx = 0;
+//	}
+//	else{
+//		theta = atan2(Rx, Ry);
+//	}
+	stick_zero(&Rx, ANALOG_MARGIN);
+	stick_zero(&Ry, ANALOG_MARGIN);
+	theta = atan2(Rx, Ry);
 	if(sqrt2(Rx, Ry)>ANALOG_MAX){
 		Rx = ANALOG_MAX*sin(theta);
 		Ry = ANALOG_MAX*cos(theta);
 	}
-	*speed = (Ry>=0? 1.0:-1.0)*(sqrt2(Rx, Ry)/(float)ANALOG_MAX) * speed_max;
+	*speed = (Ry>=0? 1.0:-1.0)*(sqrt2(Rx, Ry)/(float)(ANALOG_MAX-ANALOG_MARGIN)) * speed_max;
 	*direction = theta;
 }
