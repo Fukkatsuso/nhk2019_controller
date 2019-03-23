@@ -49,22 +49,22 @@ int main(){
 
 		switch(MRmode.get_now()){
 		case MRMode::GobiArea:
-			speed_max = 140;//170;//160;//80;//55;//75;//120;
+			speed_max = 240;//90;//240;
 			break;
 		case MRMode::SandDuneFront:
-			speed_max = 350;//80;//120;//80;//normal-trot
+			speed_max = 100;//125;//110;//80;//350;
 			break;
 		case MRMode::SandDuneRear:
-			speed_max = 350;//80;//120;//80;//normal-trot
+			speed_max = 100;//125;//110;//80;//350;
 			break;
-		case MRMode::Tussock1:
-			speed_max = 80;
+		case MRMode::Tussock:
+			speed_max = 240;//90;//240;
 			break;
 		case MRMode::Start2:
-			speed_max = 90;
+			speed_max = 120;//180;
 			break;
 		case MRMode::StartClimb1:
-			speed_max = 300*4.0/3.0;//300;//trot
+			speed_max = 180;//140;
 		}
 
 		can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Speed), speed);
@@ -83,7 +83,7 @@ void mode_command(){
 	//課題突入
 	if		(ps.BUTTON.BIT.MARU) 	MRmode.set_initial();
 	else if (ps.BUTTON.BIT.BATU) 	MRmode.set(MRMode::SandDuneFront);
-	else if (ps.BUTTON.BIT.SANKAKU) MRmode.set(MRMode::Tussock1);
+	else if (ps.BUTTON.BIT.SANKAKU) MRmode.set(MRMode::Tussock);
 	else if (ps.BUTTON.BIT.SIKAKU)	MRmode.set(MRMode::Start2);
 
 	int mrmode = MRmode.get_now();
