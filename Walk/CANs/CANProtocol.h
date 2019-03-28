@@ -45,6 +45,7 @@ struct CANID{
 		MoveDistFL,
 		MoveDistRR,
 		MoveDistRL,
+		MoveDistAvg, //実際の移動距離 //Masterへ送信
 		DataType_end//<=0x00f=15 に制限（仕様上）
 	};
 };

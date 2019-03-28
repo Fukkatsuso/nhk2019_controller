@@ -4,16 +4,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../Walk/MRMode.cpp \
-../Walk/WalkingDistance.cpp 
+../Walk/MRMode.cpp 
 
 OBJS += \
-./Walk/MRMode.o \
-./Walk/WalkingDistance.o 
+./Walk/MRMode.o 
 
 CPP_DEPS += \
-./Walk/MRMode.d \
-./Walk/WalkingDistance.d 
+./Walk/MRMode.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

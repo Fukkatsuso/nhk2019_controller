@@ -21,7 +21,6 @@
 #include "Walk/CANs/CANSender.h"
 #include "Walk/CANs/CANReceiver.h"
 #include "Walk/MRMode.h"
-#include "Walk/WalkingDistance.h"
 
 
 CANMessage rcvMsg;
@@ -29,12 +28,11 @@ CANSender can_sender(&can);
 CANReceiver can_receiver(&can);
 MRMode MRmode(MRMode::GobiArea, &can_sender);
 
-WalkingDistance walk_dist;
-
 void CANrcv();
-void CANrcv_dist(unsigned int can_id, float can_data);
 void mode_command();
 void walk_command(float *speed, float *direction, float speed_max);
+
+float walk_dist = 0;;
 
 
 int main(){
@@ -43,6 +41,8 @@ int main(){
 	float speed_max = 90.0f;
 	int switch_g_now = 0;
 	int switch_g_prev = 0;
+
+	walk_dist = 0;
 
 	can.frequency(1000000);
 	can.attach(&CANrcv, CAN::RxIrq);
@@ -55,8 +55,7 @@ int main(){
 		switch_g_now = sw_gerege.read();
 		psCommand();
 
-		//実験用
-		if(ps.BUTTON.BIT.SELECT)walk_dist.reset_position(0, 0, 0);
+		if(ps.BUTTON.BIT.SELECT)walk_dist = 0;
 
 		switch(MRmode.get_now()){
 		case MRMode::GobiArea:
@@ -104,15 +103,13 @@ int main(){
 		can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Speed), speed);
 		can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Direction), direction);
 
-		walk_dist.calc_position(0.5);
-
 		//DEBUG
 		if(pc.readable()){
 			pc.printf("mode:%2d  ", MRmode.get_now());
 			pc.printf("sw_g:%d  ", sw_gerege.read());
 			pc.printf("Rx:%3d  Ry:%3d  ", Rx, Ry);
 			pc.printf("speed:%4.3f  dir:%1.3f  ", speed, direction);
-			pc.printf("dist_x:%5.3f  dist_y:%5.3f  dist_dir:%2.3f  ", walk_dist.get_x(), walk_dist.get_y(), walk_dist.get_direction());
+			pc.printf("dist:%5.2f  ", walk_dist);
 			pc.printf("\r\n");
 		}
 	}
@@ -123,28 +120,20 @@ void CANrcv(){
 	if(can.read(rcvMsg)){
 		unsigned int id = rcvMsg.id;
 		if(!CANID_is_to(id, CANID::ToMaster))return;
+
 		can_receiver.receive(id, rcvMsg.data);
 		float can_data = can_receiver.get_data((CANID::DataType)(id&0x00f));
+
+		if(CANID_is_type(id, CANID::MoveDistAvg)){
+			pc.printf("rcvdist:%f  ", can_data);
+			walk_dist += can_data;
+			return;
+		}
+
 		if(CANID_is_type(id, CANID::AreaChange)){//エリアチェンジ要請
 			MRmode.set((MRMode::Area)can_data);
 			return;
 		}
-		CANrcv_dist(id, can_data);
-	}
-}
-
-void CANrcv_dist(unsigned int can_id, float can_data){
-	if(CANID_is_type(can_id, CANID::MoveDistFR)){
-		walk_dist.integrate_move_fr(can_data);
-	}
-	else if(CANID_is_type(can_id, CANID::MoveDistFL)){
-		walk_dist.integrate_move_fl(can_data);
-	}
-	else if(CANID_is_type(can_id, CANID::MoveDistRR)){
-		walk_dist.integrate_move_rr(can_data);
-	}
-	else if(CANID_is_type(can_id, CANID::MoveDistRL)){
-		walk_dist.integrate_move_rl(can_data);
 	}
 }
 

@@ -14,7 +14,9 @@
 class FieldMap
 {
 public:
+	FieldMap();
 private:
+
 };
 
 
