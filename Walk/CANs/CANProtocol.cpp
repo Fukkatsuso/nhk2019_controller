@@ -19,11 +19,11 @@ const short CANProtocol::CANFormats[CANID::DataType_end][FormatType::FormatType_
 		{CANID::Area,			2,	0},	//Area
 		{CANID::LegUp,			2,	0},	//LegUp
 		{CANID::AreaChange,		2, 	0}, //AreaChange
+		{CANID::MoveDistAvg, 	2,	5},	//MoveDistAvg
 		{CANID::MoveDistFR,		2,	5},	//MoveDistFR
 		{CANID::MoveDistFL,		2,	5},	//MoveDistFR
 		{CANID::MoveDistRR,		2,	5},	//MoveDistFR
 		{CANID::MoveDistRL,		2,	5},	//MoveDistFR
-		{CANID::MoveDistAvg,	2,	5}	//MoveDistAvg
 };
 
 

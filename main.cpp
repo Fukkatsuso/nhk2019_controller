@@ -86,13 +86,13 @@ int main(){
 //		if(switch_g_now && !switch_g_prev){
 //			if(MRmode.get_now()==MRMode::WaitGobiUrtuu){
 //				MRmode.set(MRMode::GetGerege);
-//				can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Area), MRMode::GetGerege);
+//				can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRMode::GetGerege);
 //				wait(1);
 //				MRmode.set(MRMode::PrepareWalking);
-//				can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Area), MRMode::PrepareWalking);
+//				can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRMode::PrepareWalking);
 //				wait(1);
 //				MRmode.set(MRMode::GobiArea);
-//				can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Area), MRMode::GobiArea);
+//				can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRMode::GobiArea);
 //			}
 //		}
 //		if(MRmode.get_now()==MRMode::GobiArea){
@@ -100,8 +100,8 @@ int main(){
 //			direction = 0;
 //		}
 
-		can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Speed), speed);
-		can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Direction), direction);
+		can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Speed), speed);
+		can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Direction), direction);
 
 		//DEBUG
 		if(pc.readable()){
@@ -119,7 +119,7 @@ int main(){
 void CANrcv(){
 	if(can.read(rcvMsg)){
 		unsigned int id = rcvMsg.id;
-		if(!CANID_is_to(id, CANID::ToMaster))return;
+		if(!CANID_is_to(id, CANID::ToController))return;
 
 		can_receiver.receive(id, rcvMsg.data);
 		float can_data = can_receiver.get_data((CANID::DataType)(id&0x00f));
@@ -164,11 +164,11 @@ void mode_command(){
 	}
 
 	//送信
-	can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Area), MRmode.get_now());
+	can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRmode.get_now());
 
 	//			   FR:leg_up&0x1			 RR:leg_up&0x2			   FL:leg_up&0x4			 RL:leg_up&0x8
 	int leg_up = ((ps.BUTTON.BIT.R1)<<0) + ((ps.BUTTON.BIT.R2)<<1) + ((ps.BUTTON.BIT.L1)<<2) + ((ps.BUTTON.BIT.L2)<<3);
-	can_sender.send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::LegUp), leg_up);
+	can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::LegUp), leg_up);
 	//	if(MRmode.get_now()==MRMode::SandDune && ps.BUTTON.BIT.SIKAKU)leg_up = 0xf;
 }
 
