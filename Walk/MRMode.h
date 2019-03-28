@@ -50,6 +50,7 @@ public:
 	void set_initial();
 	void set(enum Area area);
 	void send();
+
 	int get_now();
 
 private:

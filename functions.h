@@ -12,13 +12,6 @@
 
 #include "mbed.h"
 
-#define ROOP_PERIOD 5000//whileループ周期[us]
-
-#define SERVO_GEREGE_FREE 50
-#define SERVO_GEREGE_INIT 2150
-#define SERVO_GEREGE_UP 1000
-#define TIME_GEREGE_UP 1.0f//持ち上げに要する時間[s]
-
 
 //リミット:int
 int limit(int value, int max, int min);
@@ -32,9 +25,11 @@ float sqrt2(float a, float b);
 //余弦定理
 float cos_formula(float A1, float A2, float B);
 
+//毎ループごとに一定速度で増加させる
+float trapezoidal_control(float now, float initial, float target, float roop_period, float time_required);
+
 
 //main用
 void stick_zero(int *stick, int margin);
-void up_gerege(float *duty, float *duty_prev);
 
 #endif /* FUNCTIONS_H_ */

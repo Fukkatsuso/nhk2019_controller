@@ -27,20 +27,16 @@ float cos_formula(float A1, float A2, float B){
 	return ((A1)*(A1) + (A2)*(A2) - B*B) / (2 * (A1) * (A2));
 }
 
+float trapezoidal_control(float now, float initial, float target, float roop_period, float time_required){
+	float next = now + (target - initial) * roop_period / time_required;
+	if(initial < target)return limit(next, target, initial);
+	else return limit(next, initial, target);
+}
+
 
 //main用
 void stick_zero(int *stick, int margin){
 	if(*stick > margin)*stick -= margin;
 	else if(*stick < -margin)*stick += margin;
 	else *stick = 0;
-}
-
-
-void up_gerege(float *duty, float *duty_prev){
-	*duty = *duty_prev +
-			limit(((float)SERVO_GEREGE_UP-(float)SERVO_GEREGE_INIT),
-					fabs(SERVO_GEREGE_UP-SERVO_GEREGE_INIT)*(((float)ROOP_PERIOD/1000000.0)/TIME_GEREGE_UP),
-					-fabs(SERVO_GEREGE_UP-SERVO_GEREGE_INIT)*(((float)ROOP_PERIOD/1000000.0)/TIME_GEREGE_UP));
-	*duty = limit(*duty, (float)SERVO_GEREGE_INIT, (float)SERVO_GEREGE_UP);
-	*duty_prev = *duty;
 }
