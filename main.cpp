@@ -103,11 +103,11 @@ int main(){
 //			direction = 0;
 //		}
 
-		can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Speed), speed);
-		can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Direction), direction);
+		can_sender.send_velocity_vector(
+				CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::VelocityVector), direction, speed);
 
-		walk_dist_front = can_receiver.get_data(CANID::MoveDistFront);
-		walk_dist_rear = can_receiver.get_data(CANID::MoveDistRear);
+		walk_dist_front = can_receiver.get_move_dist_front();
+		walk_dist_rear = can_receiver.get_move_dist_rear();
 		walk_dist = walk_dist_front + walk_dist_rear;
 		can_navi.send_dist(walk_dist);
 
@@ -127,14 +127,16 @@ int main(){
 void CANrcv(){
 	if(can.read(rcvMsg)){
 		unsigned int id = rcvMsg.id;
-		if(!CANID_is_to(id, CANID::ToController))return;
+		if(!CANID::is_to(id, CANID::ToController))return;
 
-		can_receiver.receive(id, rcvMsg.data);
-		float can_data = can_receiver.get_data((CANID::DataType)(id&0x00f));
-
-		if(CANID_is_type(id, CANID::AreaChange)){//エリアチェンジ要請
-			MRmode.set((MRMode::Area)can_data);
+		if(CANID::is_from(id, CANID::FromMaster)){
+			can_navi.receive(rcvMsg);
 			return;
+		}
+		can_receiver.receive(rcvMsg);
+
+		if(CANID::is_type(id, CANID::AreaChange)){//エリアチェンジ要請
+			MRmode.set((MRMode::Area)can_receiver.get_area());
 		}
 	}
 }
@@ -166,11 +168,11 @@ void mode_command(){
 	}
 
 	//送信
-	can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRmode.get_now());
+	can_sender.send_area(CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRmode.get_now());
 
-	//			   FR:leg_up&0x1			 RR:leg_up&0x2			   FL:leg_up&0x4			 RL:leg_up&0x8
-	int leg_up = ((ps.BUTTON.BIT.R1)<<0) + ((ps.BUTTON.BIT.R2)<<1) + ((ps.BUTTON.BIT.L1)<<2) + ((ps.BUTTON.BIT.L2)<<3);
-	can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::LegUp), leg_up);
+	//					   FR:leg_up&0x1			 FL:leg_up&0x4				RR:leg_up&0x2			 RL:leg_up&0x8
+	unsigned char leg_up = ((ps.BUTTON.BIT.R1)<<0) + ((ps.BUTTON.BIT.L1)<<1) + ((ps.BUTTON.BIT.R2)<<2) + ((ps.BUTTON.BIT.L2)<<3);
+	can_sender.send_leg_up(CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::LegUp), leg_up);
 	//	if(MRmode.get_now()==MRMode::SandDune && ps.BUTTON.BIT.SIKAKU)leg_up = 0xf;
 }
 

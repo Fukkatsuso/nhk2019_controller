@@ -22,7 +22,7 @@ void CANNavigation::send_dist(float dist)
 {
 	union send_t data;
 	data.dist = (signed short)dist;
-	int can_id = CANID_generate(CANID::FromController, CANID::ToMaster, CANID::MoveDistCentroid);
+	unsigned int can_id = CANID::generate(CANID::FromController, CANID::ToMaster, CANID::MoveDistCentroid);
 
 	CANMessage msg(can_id, (const char*)data.byte, 2);
 	if(can->write(msg));

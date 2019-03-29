@@ -27,7 +27,7 @@ void MRMode::set(enum Area area)
 
 void MRMode::send()
 {
-	can_sender->send(CANID_generate(CANID::FromMaster, CANID::ToSlaveAll, CANID::Area), now);
+	can_sender->send_area(CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), now);
 }
 
 int MRMode::get_now()
