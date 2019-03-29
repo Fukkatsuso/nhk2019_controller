@@ -4,16 +4,19 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../Walk/CANs/CANNavigation.cpp \
 ../Walk/CANs/CANProtocol.cpp \
 ../Walk/CANs/CANReceiver.cpp \
 ../Walk/CANs/CANSender.cpp 
 
 OBJS += \
+./Walk/CANs/CANNavigation.o \
 ./Walk/CANs/CANProtocol.o \
 ./Walk/CANs/CANReceiver.o \
 ./Walk/CANs/CANSender.o 
 
 CPP_DEPS += \
+./Walk/CANs/CANNavigation.d \
 ./Walk/CANs/CANProtocol.d \
 ./Walk/CANs/CANReceiver.d \
 ./Walk/CANs/CANSender.d 

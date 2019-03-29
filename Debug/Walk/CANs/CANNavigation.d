@@ -1,4 +1,5 @@
-main.o main.d: ../main.cpp \
+Walk/CANs/CANNavigation.o Walk/CANs/CANNavigation.d: \
+ ../Walk/CANs/CANNavigation.cpp ../Walk/CANs/CANNavigation.h \
  C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\api/mbed.h \
  C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\api/platform.h \
  C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\targets\hal\TARGET_NXP\TARGET_LPC176X/device.h \
@@ -69,11 +70,9 @@ main.o main.d: ../main.cpp \
  C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\api/wait_api.h \
  C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\hal/sleep_api.h \
  C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\api/rtc_time.h \
- ../Pins.h ../PhotoelectricSensor.h ../pspad.h ../functions.h \
- ../Walk/CANs/CANSender.h ../Walk/CANs/CANProtocol.h \
- ../Walk/CANs/CANReceiver.h ../Walk/MRMode.h \
- C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0/Walk/CANs/CANSender.h \
- ../Walk/CANs/CANNavigation.h
+ ../Walk/CANs/CANProtocol.h
+
+../Walk/CANs/CANNavigation.h:
 
 C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\api/mbed.h:
 
@@ -215,22 +214,4 @@ C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Contr
 
 C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\api/rtc_time.h:
 
-../Pins.h:
-
-../PhotoelectricSensor.h:
-
-../pspad.h:
-
-../functions.h:
-
-../Walk/CANs/CANSender.h:
-
 ../Walk/CANs/CANProtocol.h:
-
-../Walk/CANs/CANReceiver.h:
-
-../Walk/MRMode.h:
-
-C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0/Walk/CANs/CANSender.h:
-
-../Walk/CANs/CANNavigation.h:

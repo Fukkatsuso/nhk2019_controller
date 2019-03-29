@@ -11,6 +11,30 @@
 #include "mbed.h"
 
 
+//改善
+//というか修正
+//CANFormatsは何バイト送るかのみ
+//送受信データはunionのstructでまとめる
+//#define BYTE_SPEED 4
+//union can_speed{
+//	unsigned char byte[BYTE_SPEED];
+//	float speed;
+//};
+//...
+//struct CANData{
+//	union can_speed speed;
+//	...
+//};
+
+//[float(4) Speed][float(4) Direction]
+//[unsigned char(1) TimerReset]
+//[unsigned char(1) Area]
+//[unsigned char(1) LegUp]
+//[unsigned char(1) AreaChange]
+//[short(2) MoveDistFront]
+//[short(2) MoveDistRear]
+//[short(2) MoveDistCentroid]
+
 struct CANID{
 	enum From{
 		FromMaster 		= 0x000,
@@ -27,19 +51,17 @@ struct CANID{
 		ToRear 			= 0x040
 	};
 	enum DataType{
-		Period = 0,		//たぶん送らない
-		Duty,			//たぶん送らない
-		Speed,			//Controller->Slave
-		Direction,		//Master->Controller->Slave
-		TimerReset,		//Controller->Slave
-		Area,			//Master->Controller-中間処理->Slave
-		LegUp,			//Controller->Slave
-		AreaChange,		//Slave->Controller : Area変更の要請を送るためだけ
-		MoveDistAvg,	//Slave->Controller->Master : 各脚歩いた量を送信 : これで送信元識別
-		MoveDistFR,
-		MoveDistFL,
-		MoveDistRR,
-		MoveDistRL,
+		Period = 0,			//たぶん送らない
+		Duty,				//たぶん送らない
+		Speed,				//Controller->Slave
+		Direction,			//Master->Controller->Slave
+		TimerReset,			//Controller->Slave
+		Area,				//Master->Controller-中間処理->Slave
+		LegUp,				//Controller->Slave
+		AreaChange,			//Slave->Controller : Area変更の要請を送るためだけ
+		MoveDistFront,		//Slave->Controller
+		MoveDistRear,		//Slave->Controller
+		MoveDistCentroid,	//Controller->Master : 各脚歩いた量を送信 : これで送信元識別
 		DataType_end//<=0x00f=15 に制限（仕様上）
 	};
 };

@@ -21,6 +21,7 @@
 #include "Walk/CANs/CANSender.h"
 #include "Walk/CANs/CANReceiver.h"
 #include "Walk/MRMode.h"
+#include "Walk/CANs/CANNavigation.h"
 
 
 CANMessage rcvMsg;
@@ -28,21 +29,23 @@ CANSender can_sender(&can);
 CANReceiver can_receiver(&can);
 MRMode MRmode(MRMode::GobiArea, &can_sender);
 
+CANNavigation can_navi(&can);
+
 void CANrcv();
 void mode_command();
 void walk_command(float *speed, float *direction, float speed_max);
 
-float walk_dist = 0;;
-
 
 int main(){
+	float walk_dist_front = 0;
+	float walk_dist_rear = 0;
+	float walk_dist = 0;//機体重心の総移動距離
+
 	float speed = 0;
 	float direction = 0;
 	float speed_max = 90.0f;
 	int switch_g_now = 0;
 	int switch_g_prev = 0;
-
-	walk_dist = 0;
 
 	can.frequency(1000000);
 	can.attach(&CANrcv, CAN::RxIrq);
@@ -103,6 +106,11 @@ int main(){
 		can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Speed), speed);
 		can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Direction), direction);
 
+		walk_dist_front = can_receiver.get_data(CANID::MoveDistFront);
+		walk_dist_rear = can_receiver.get_data(CANID::MoveDistRear);
+		walk_dist = walk_dist_front + walk_dist_rear;
+		can_navi.send_dist(walk_dist);
+
 		//DEBUG
 		if(pc.readable()){
 			pc.printf("mode:%2d  ", MRmode.get_now());
@@ -123,12 +131,6 @@ void CANrcv(){
 
 		can_receiver.receive(id, rcvMsg.data);
 		float can_data = can_receiver.get_data((CANID::DataType)(id&0x00f));
-
-		if(CANID_is_type(id, CANID::MoveDistAvg)){
-			pc.printf("rcvdist:%f  ", can_data);
-			walk_dist += can_data;
-			return;
-		}
 
 		if(CANID_is_type(id, CANID::AreaChange)){//エリアチェンジ要請
 			MRmode.set((MRMode::Area)can_data);
