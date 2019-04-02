@@ -77,6 +77,7 @@ int main(){
 				//どれか1つだけコメントアウト
 				can_navi.get_status(),
 //				CANNavigation::Walk,
+//				CANNavigation::SandDune,
 //				CANNavigation::MountainArea,
 
 				-((float)can_navi.get_angle())*M_PI/180.0,

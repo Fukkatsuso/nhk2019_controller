@@ -232,21 +232,26 @@ short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned in
 		break;
 
 	case SandDuneRear:
-		if(navi_status!=CANNavigation::SandDune){ //SandDuneクリア(?)
-			if(kouden_sd_r < 700) set(MRMode::ReadyForTussock);
-			else set(MRMode::SandDuneRear);
-		}
+//		if(navi_status!=CANNavigation::SandDune){ //SandDuneクリア(?)
+//			if(kouden_sd_r < 700) set(MRMode::ReadyForTussock);
+//			else set(MRMode::SandDuneRear);
+//		}
 		break;
 
 	case ReadyForTussock:
-		if(kouden_sd_r > 700) set(MRMode::SandDuneRear); //一応。謎のバグ対策(4/1)
-		else if(navi_status==CANNavigation::Tussock) set(MRMode::Tussock);
+//		if(kouden_sd_r > 700) set(MRMode::SandDuneRear); //一応。謎のバグ対策(4/1)
+//		else
+			if(navi_status==CANNavigation::Tussock) set(MRMode::Tussock);
 		break;
 
 	case Tussock:
 //		if(timer_switching.read()>1.5)//少し待機
 			leg_up = 0xf; //最初は前脚のみ、少し待って後脚も上げるとかに変更?
 		if(navi_status==CANNavigation::Stop) set(MRMode::Finish1);
+		if(navi_status==CANNavigation::MountainArea){
+			navi_status = CANNavigation::Stop;
+			set(MRMode::Finish1);
+		}
 		break;
 
 	case Finish1:
@@ -285,10 +290,11 @@ short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned in
 
 	case MountainArea:
 		if(navi_status==CANNavigation::UukhaiZone) set(MRMode::UukhaiZone);
+		else if(navi_status==CANNavigation::Stop) set(MRMode::UukhaiZone);
 		break;
 
 	case UukhaiZone:
-		if(timer_switching.read() > 2) //初期位置戻して落ち着くまで待機  //将来的にはSlaveから完全停止フラグを受け取る
+		if(timer_switching.read() > 3) //初期位置戻して落ち着くまで待機  //将来的にはSlaveから完全停止フラグを受け取る
 			set(MRMode::Uukhai);
 		break;
 
