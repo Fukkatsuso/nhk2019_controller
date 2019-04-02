@@ -27,97 +27,109 @@
 CANMessage rcvMsg;
 CANSender can_sender(&can);
 CANReceiver can_receiver(&can);
-MRMode MRmode(MRMode::GobiArea, &can_sender);
-
 CANNavigation can_navi(&can);
+MRMode MRmode(
+		MRMode::WaitGobiUrtuu,
+//		MRMode::WaitMountainUrtuu,
+
+		&can_sender);
+
 
 void CANrcv();
-void mode_command();
-void walk_command(float *speed, float *direction, float speed_max);
+void mode_operate_command();
+void walk_operate_command(float *speed, float *direction, float speed_max);
 
 
 int main(){
-	float walk_dist_front = 0;
-	float walk_dist_rear = 0;
-	float walk_dist = 0;//機体重心の総移動距離
+	short walk_dist_front = 0;
+	short walk_dist_rear = 0;
+	unsigned char kouden_sanddune_front = 0;
+	unsigned char kouden_sanddune_rear = 0;
+	short walk_dist = 0;//機体重心の総移動距離
 
 	float speed = 0;
 	float direction = 0;
-	float speed_max = 90.0f;
-	int switch_g_now = 0;
-	int switch_g_prev = 0;
+
+	unsigned int counter_sanddune_front = 0;
+	unsigned int counter_sanddune_rear = 0;
 
 	can.frequency(1000000);
 	can.attach(&CANrcv, CAN::RxIrq);
 	wait_ms(300); //全ての基板の電源が入るまで待つ
 	pc.baud(921600);
 
+	MRmode.set_sensors(&sw_gerege, &kouden_urtuu2);
+
 	while(1){
 		AdjustCycle(5000);
-		switch_g_prev = switch_g_now;
-		switch_g_now = sw_gerege.read();
-		psCommand();
 
-		if(ps.BUTTON.BIT.SELECT)walk_dist = 0;
-
-		switch(MRmode.get_now()){
-		case MRMode::GobiArea:
-			speed_max = 240;
-			break;
-		case MRMode::SandDuneFront:
-			speed_max = 100;
-			break;
-		case MRMode::SandDuneRear:
-			speed_max = 100;
-			break;
-		case MRMode::Tussock:
-			speed_max = 240;
-			break;
-		case MRMode::Start2:
-			speed_max = 240;//120;
-			break;
-		case MRMode::StartClimb1:
-			speed_max = 220;
-			break;
-		}
-
-		walk_command(&speed, &direction, speed_max);
-
-		mode_command();
-		//ゲルゲ受け取りから歩き出すまで自動化
-		//MRmode初期状態:WaitGobiUrtuu
-//		if(switch_g_now && !switch_g_prev){
-//			if(MRmode.get_now()==MRMode::WaitGobiUrtuu){
-//				MRmode.set(MRMode::GetGerege);
-//				can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRMode::GetGerege);
-//				wait(1);
-//				MRmode.set(MRMode::PrepareWalking);
-//				can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRMode::PrepareWalking);
-//				wait(1);
-//				MRmode.set(MRMode::GobiArea);
-//				can_sender.send(CANID_generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRMode::GobiArea);
-//			}
-//		}
-//		if(MRmode.get_now()==MRMode::GobiArea){
-//			speed = limit(speed + 240.0*0.005, 240.0, 0.0);
-//			direction = 0;
+		//PSコン操作時のみ
+//		psCommand();
+//		if(ps.ANALOG_MODE){
+//			walk_operate_command(&speed, &direction, speed_max);
+//			mode_operate_command();
 //		}
 
+		//自動ver.
+		//Area, speed, direction計算
+		//LegUp計算
+		MRmode.plan(
+				//どれか1つだけコメントアウト
+				can_navi.get_status(),
+//				CANNavigation::Walk,
+//				CANNavigation::MountainArea,
+
+				-((float)can_navi.get_angle())*M_PI/180.0,
+				walk_dist,
+				counter_sanddune_front, //kouden_sanddune_front,
+				counter_sanddune_rear //kouden_sanddune_rear
+				);
+
+		//Gerege掲げる
+		if(MRmode.get_now() >= MRMode::Uukhai) cyl_gerege.write(1);
+		else cyl_gerege.write(0);
+
+		//Area送信
+		MRmode.send();
+
+		//速度ベクトル送信
+		direction = MRmode.get_direction();
+		speed = MRmode.get_speed();
 		can_sender.send_velocity_vector(
 				CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::VelocityVector), direction, speed);
 
-		walk_dist_front = can_receiver.get_move_dist_front();
-		walk_dist_rear = can_receiver.get_move_dist_rear();
+		//歩行量計算+送信
+		//前脚からの情報
+		walk_dist_front = can_receiver.get_move_position_front_dist();
+		kouden_sanddune_front = can_receiver.get_move_position_front_kouden_sanddune();
+		//後脚からの情報
+		walk_dist_rear = can_receiver.get_move_position_rear_dist();
+		kouden_sanddune_rear = can_receiver.get_move_position_rear_kouden_sanddune();
+		//Masterへ送信
 		walk_dist = walk_dist_front + walk_dist_rear;
-		can_navi.send_dist(walk_dist);
+		can_navi.send(walk_dist, kouden_sanddune_front, kouden_sanddune_rear);
+
+		//光電センサの値更新
+		counter_sanddune_front = counter_update(counter_sanddune_front, kouden_sanddune_front);
+		counter_sanddune_rear = counter_update(counter_sanddune_rear, kouden_sanddune_rear);
+		if(MRmode.get_now() < MRMode::SandDuneFront)counter_sanddune_front = 0;
+		if(MRmode.get_now() < MRMode::SandDuneRear)counter_sanddune_rear = 0;
 
 		//DEBUG
 		if(pc.readable()){
+				//シリンダ操作
+//				int ch = pc.getc();
+//				if(ch=='c')cyl_gerege.write(1);
+//				else if(ch=='d')cyl_gerege.write(0);
 			pc.printf("mode:%2d  ", MRmode.get_now());
 			pc.printf("sw_g:%d  ", sw_gerege.read());
-			pc.printf("Rx:%3d  Ry:%3d  ", Rx, Ry);
+			pc.printf("cyl:%1d  ", cyl_gerege.read());
+//			pc.printf("Rx:%3d  Ry:%3d  ", Rx, Ry);
 			pc.printf("speed:%4.3f  dir:%1.3f  ", speed, direction);
-			pc.printf("dist:%5.2f  ", walk_dist);
+			pc.printf("dist:[%5d][%5d]  ", walk_dist_front, walk_dist_rear);
+			pc.printf("kouden[%1d][%1d][%1d]  ", kouden_sanddune_front, kouden_sanddune_rear, kouden_urtuu2.read());
+			pc.printf("navi[%d][%d]  ", can_navi.get_angle(), can_navi.get_status());
+//			pc.printf("cnt_sdr:%d  ", counter_sanddune_rear);
 			pc.printf("\r\n");
 		}
 	}
@@ -133,17 +145,18 @@ void CANrcv(){
 			can_navi.receive(rcvMsg);
 			return;
 		}
+		//Slaveとの通信
 		can_receiver.receive(rcvMsg);
 
 		if(CANID::is_type(id, CANID::AreaChange)){//エリアチェンジ要請
-			MRmode.set((MRMode::Area)can_receiver.get_area());
+			MRmode.set((MRMode::Area)can_receiver.get_area_change());
 		}
 	}
 }
 
-void mode_command(){
+void mode_operate_command(){
 	//課題突入
-	if		(ps.BUTTON.BIT.MARU) 	MRmode.set_initial();
+	if		(ps.BUTTON.BIT.MARU) 	MRmode.set(MRMode::GobiArea);
 	else if (ps.BUTTON.BIT.BATU) 	MRmode.set(MRMode::SandDuneFront);
 	else if (ps.BUTTON.BIT.SANKAKU) MRmode.set(MRMode::Tussock);
 	else if (ps.BUTTON.BIT.SIKAKU)	MRmode.set(MRMode::Start2);
@@ -154,7 +167,7 @@ void mode_command(){
 		if(ps.BUTTON.BIT.DOWN)MRmode.set(MRMode::SandDuneRear);
 	}
 	else if(mrmode==MRMode::SandDuneRear){
-		if(ps.BUTTON.BIT.UP)MRmode.set_initial();
+		if(ps.BUTTON.BIT.UP)MRmode.set(MRMode::GobiArea);
 	}
 	//登山中コマンド
 	if(mrmode==MRMode::Start2){
@@ -170,22 +183,14 @@ void mode_command(){
 	//送信
 	can_sender.send_area(CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), MRmode.get_now());
 
-	//					   FR:leg_up&0x1			 FL:leg_up&0x4				RR:leg_up&0x2			 RL:leg_up&0x8
+	//					   FR:leg_up&0x1			 FL:leg_up&0x2				RR:leg_up&0x4			 RL:leg_up&0x8
 	unsigned char leg_up = ((ps.BUTTON.BIT.R1)<<0) + ((ps.BUTTON.BIT.L1)<<1) + ((ps.BUTTON.BIT.R2)<<2) + ((ps.BUTTON.BIT.L2)<<3);
 	can_sender.send_leg_up(CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::LegUp), leg_up);
 	//	if(MRmode.get_now()==MRMode::SandDune && ps.BUTTON.BIT.SIKAKU)leg_up = 0xf;
 }
 
-void walk_command(float *speed, float *direction, float speed_max){
+void walk_operate_command(float *speed, float *direction, float speed_max){
 	float theta;
-//	if((-ANALOG_MARGIN<Ry && Ry<ANALOG_MARGIN) && (-ANALOG_MARGIN<Rx && Rx<ANALOG_MARGIN)){
-//		theta = 0;
-//		Ry = 0;
-//		Rx = 0;
-//	}
-//	else{
-//		theta = atan2(Rx, Ry);
-//	}
 	stick_zero(&Rx, ANALOG_MARGIN);
 	stick_zero(&Ry, ANALOG_MARGIN);
 	theta = atan2(Rx, Ry);

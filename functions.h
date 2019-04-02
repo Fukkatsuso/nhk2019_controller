@@ -28,6 +28,9 @@ float cos_formula(float A1, float A2, float B);
 //毎ループごとに一定速度で増加させる
 float trapezoidal_control(float now, float initial, float target, float roop_period, float time_required);
 
+//符号なし整数カウンタ更新
+unsigned int counter_update(unsigned int counter, unsigned char flag);
+
 
 //main用
 void stick_zero(int *stick, int margin);

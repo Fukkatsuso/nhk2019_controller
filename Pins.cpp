@@ -30,9 +30,10 @@ Pspad ps(p17, p18, p19, p20);
 /************************
  * 		駆動系/その他		*
  ************************/
-PwmOut sv_gerege(p23);
+//PwmOut sv_gerege(p23);
 DigitalIn sw_gerege(p5);
-PhotoelectricSensor kouden(p6);
+PhotoelectricSensor kouden_urtuu2(p6);
+DigitalOut cyl_gerege(p7);
 
 
 

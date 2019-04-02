@@ -36,7 +36,6 @@ void PhotoelectricSensor::sensing()
  */
 int PhotoelectricSensor::read()
 {
-	sensing();
 	return now;
 }
 
@@ -47,6 +46,5 @@ bool PhotoelectricSensor::is_rising()
 
 float PhotoelectricSensor::get_ontime()
 {
-	read();
 	return tm_kouden.read();
 }

@@ -39,9 +39,10 @@ extern Pspad ps;
 /************************
  * 		駆動系/その他		*
  ************************/
-extern PwmOut sv_gerege;
+//extern PwmOut sv_gerege;
 extern DigitalIn sw_gerege;
-extern PhotoelectricSensor kouden;
+extern PhotoelectricSensor kouden_urtuu2;
+extern DigitalOut cyl_gerege;
 
 
 

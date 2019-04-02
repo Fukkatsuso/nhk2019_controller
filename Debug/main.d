@@ -73,6 +73,7 @@ main.o main.d: ../main.cpp \
  ../Walk/CANs/CANSender.h ../Walk/CANs/CANProtocol.h \
  ../Walk/CANs/CANReceiver.h ../Walk/MRMode.h \
  C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0/Walk/CANs/CANSender.h \
+ C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0/PhotoelectricSensor.h \
  ../Walk/CANs/CANNavigation.h
 
 C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0\mbed-src\api/mbed.h:
@@ -232,5 +233,7 @@ C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Contr
 ../Walk/MRMode.h:
 
 C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0/Walk/CANs/CANSender.h:
+
+C:\Users\mutsuro\Documents\LPCXpresso_8.2.2_650\workspace\nhk_2019_walk_2v\Controller_2.0/PhotoelectricSensor.h:
 
 ../Walk/CANs/CANNavigation.h:
