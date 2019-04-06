@@ -23,16 +23,19 @@
 
 class PhotoelectricSensor{
 public:
-	PhotoelectricSensor(PinName input);
+	PhotoelectricSensor(PinName input, bool use_timer);
 	void sensing();
 	int read();
 	bool is_rising();
 	float get_ontime();
+	unsigned int get_counter();
 private:
 	DigitalIn *Input;
-	Timer tm_kouden;
+	Timer *tm_kouden;
+	bool use_timer;
 	short now;
 	short prev;
+	unsigned int counter;
 };
 
 

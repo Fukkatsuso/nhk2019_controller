@@ -32,7 +32,9 @@ Pspad ps(p17, p18, p19, p20);
  ************************/
 //PwmOut sv_gerege(p23);
 DigitalIn sw_gerege(p5);
-PhotoelectricSensor kouden_urtuu2(p6);
+PhotoelectricSensor kouden_urtuu2_right(p8, true);
+PhotoelectricSensor kouden_urtuu2_left(p6, true);
+PhotoelectricSensor kouden_dune_detect(p30, false);
 DigitalOut cyl_gerege(p7);
 
 

@@ -52,40 +52,46 @@ public:
 	};
 
 	MRMode(enum Area area_initial, CANSender *can_sender);
-	void set_sensors(DigitalIn *sw_gerege, PhotoelectricSensor *kouden_urtuu2);
+	void set_sensors(DigitalIn *sw_gerege, PhotoelectricSensor *kouden_urtuu2, PhotoelectricSensor *kouden_dune_detect);
 	void set_initial();
 	void set(enum Area area);
-	void send();
+//	void send();
 
 	int get_now();
 	float get_speed();
-	float get_direction();
+	short get_direction();
 	float get_time();
 	float get_speed_max();
 	short get_dist_in_area();
+	unsigned char get_leg_up();
 
-	void plan(short navi_status, float navi_angle, short dist, unsigned int kouden_sd_f, unsigned int kouden_sd_r);
+	void plan(short navi_status, short navi_angle, short dist, unsigned int kouden_sd_f, unsigned int kouden_sd_r);
 
 //protected:
-	short plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned int kouden_sd_r);
-	void plan_velocity(short navi_status, float navi_angle=0);
 	void sensor_update();
 	void dists_update(short dist);
+	short plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned int kouden_sd_r);
+	void plan_velocity(short navi_status, short navi_angle);
 
 private:
 	Timer timer_switching;
 	CANSender *can_sender;
-	Area now;
-	Area prev;
-	Area initial;
+	struct{
+		Area now;
+		Area prev;
+		Area initial;
+		bool semaphore; //変更時:false, trueのときだけ読み込み可
+	}area;
 
 	DigitalIn *sw_gerege;
 	PhotoelectricSensor *kouden_urtuu2;
+	PhotoelectricSensor *kouden_dune_detect;
 
 	Sensor gerege;
 
 	float speed;
-	float direction;
+	short direction;
+	unsigned char leg_up;
 
 	short dists[MRMode::Area_end]; //モード切替までに歩いた距離
 

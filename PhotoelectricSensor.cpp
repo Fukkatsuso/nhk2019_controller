@@ -8,11 +8,14 @@
 #include "PhotoelectricSensor.h"
 
 
-PhotoelectricSensor::PhotoelectricSensor(PinName input)
+PhotoelectricSensor::PhotoelectricSensor(PinName input, bool use_timer)
 {
 	Input = new DigitalIn(input);
 	Input->mode(PullUp);
 	now = prev = 0;
+	this->use_timer = use_timer;
+	if(use_timer)tm_kouden = new Timer;
+	else counter = 0;
 }
 
 
@@ -20,13 +23,19 @@ void PhotoelectricSensor::sensing()
 {
 	prev = now;
 	now = 1-(Input->read());
-	if(is_rising()){
-		tm_kouden.reset();
-		tm_kouden.start();
+	if(use_timer){
+		if(is_rising()){
+			tm_kouden->reset();
+			tm_kouden->start();
+		}
+		else if(now==0){
+			tm_kouden->stop();
+			tm_kouden->reset();
+		}
 	}
-	else if(now==0){
-		tm_kouden.stop();
-		tm_kouden.reset();
+	else{
+		if(now)counter++;
+		else if(counter > 0)counter--;
 	}
 }
 
@@ -46,5 +55,12 @@ bool PhotoelectricSensor::is_rising()
 
 float PhotoelectricSensor::get_ontime()
 {
-	return tm_kouden.read();
+	if(use_timer)tm_kouden->read();
+	else return 0;
+}
+
+unsigned int PhotoelectricSensor::get_counter()
+{
+	if(!use_timer)return counter;
+	else return 0;
 }

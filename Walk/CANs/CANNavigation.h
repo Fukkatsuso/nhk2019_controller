@@ -14,21 +14,26 @@
 //Master->Controller : angle, status 					: 0x013
 //Master<-Controller : dist, kouden_front, kouden_rear	: 0x102
 
+#define BYTE_RCV_T 3
 union rcv_t{
-	unsigned char byte[3];
+	unsigned char byte[BYTE_RCV_T];
 	struct{
 		signed short angle; //目標相対角[degree], 左回り正
 		unsigned char status; //state_tの内容
 	};
 };
 
+#define BYTE_SEND_T 3
 union send_t{
-	unsigned char byte[3];
+	unsigned char byte[BYTE_SEND_T];
 	struct{
 		signed short dist; //最初からの累計移動距離[mm]
-		struct{ //光電センサ:onで1
-			unsigned char Front : 1;
-			unsigned char Rear  : 1;
+		union{ //光電センサ:onで1
+			unsigned char byte[1];
+			struct{
+				unsigned char Front : 1;
+				unsigned char Rear  : 1;
+			};
 		}PhotoelectricSensor;
 	};
 };
@@ -38,11 +43,11 @@ class CANNavigation
 {
 public:
 	CANNavigation(CAN *can);
-	void send(short dist=0, unsigned char kouden_front=0, unsigned char kouden_rear=0);
+	void send(short dist, unsigned char kouden_front, unsigned char kouden_rear);
 	void receive(CANMessage msg);
 
-	short get_status();
-	short get_angle();
+	unsigned char get_status();
+	signed short get_angle();
 
 	enum state_t{
 		Stop,
@@ -55,11 +60,10 @@ public:
 
 private:
 	CAN *can;
-	union rcv_t navi;
-
 	struct{
-		bool rcv_t;
-	}semaphore;
+		union rcv_t data;
+		bool semaphore;
+	}navi;
 };
 
 

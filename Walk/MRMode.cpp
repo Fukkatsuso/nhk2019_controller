@@ -20,10 +20,10 @@ const float MRMode::params[MRMode::Area_end][MRMode::Params_end] =
 		{0,				0},		//GetGerege
 		{0,				0},		//PrepareWalking
 		{50,			0},		//Start1 //80はGobiAreaのスピード初期値
-		{240,			1.2},	//GobiArea
+		{350/*240*/,			2/*1.2*/},	//GobiArea
 //SandDune
-		{100,			0},		//SandDuneFront
-		{100,			0},		//SandDuneRear
+		{133,			0},		//SandDuneFront
+		{133,			0},		//SandDuneRear
 //Walk
 		{240,			1},		//ReadyForTussock
 //Tussock
@@ -33,21 +33,23 @@ const float MRMode::params[MRMode::Area_end][MRMode::Params_end] =
 		{0,				0},		//WaitMountainUrtuu
 		{0,				0},		//GetSign
 		{240,			1.2},	//Start2
-		{220,			1},		//StartClimb1
-		{220,			0},		//StartClimb2
-		{220,			0},		//MountainArea
-		{220,			0},		//UukhaiZone
+		{250,			1},		//StartClimb1
+		{250,			0},		//StartClimb2
+		{250,			0},		//MountainArea
+		{250,			0},		//UukhaiZone
 //UukhaiZone
-		{220,			0},		//Uukhai
+		{250,			0},		//Uukhai
 		{50,			0}		//Finish2
 };
 
 
 MRMode::MRMode(enum Area area_initial, CANSender *can_sender)
 {
-	now = area_initial;
-	prev = area_initial;
-	initial = area_initial;
+	area.semaphore = false;
+	area.now = area_initial;
+	area.prev = area_initial;
+	area.initial = area_initial;
+	area.semaphore = true;
 	this->can_sender = can_sender;
 
 	direction = 0;
@@ -62,41 +64,42 @@ MRMode::MRMode(enum Area area_initial, CANSender *can_sender)
 }
 
 
-void MRMode::set_sensors(DigitalIn *sw_gerege, PhotoelectricSensor *kouden_urtuu2)
+void MRMode::set_sensors(DigitalIn *sw_gerege,
+		PhotoelectricSensor *kouden_urtuu2, PhotoelectricSensor *kouden_dune_detect)
 {
 	this->sw_gerege = sw_gerege;
 	gerege.now = gerege.prev = sw_gerege->read();
 	this->kouden_urtuu2 = kouden_urtuu2;
+	this->kouden_dune_detect = kouden_dune_detect;
 }
 
 
 void MRMode::set_initial()
 {
-	now = initial;
+	area.semaphore = false;
+	area.now = area.initial;
+	area.semaphore = true;
 }
 
 
 void MRMode::set(enum Area area)
 {
+	this->area.semaphore = false;
 	//変更のみ受け付ける
-	if(area!=now){
+	if(area!=this->area.now){
 		timer_switching.reset();
 		timer_switching.start();
-		prev = now;
-		now = area;
+		this->area.prev = this->area.now;
+		this->area.now = area;
 	}
-}
-
-
-void MRMode::send()
-{
-	can_sender->send_area(CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::Area), now);
+	this->area.semaphore = true;
 }
 
 
 int MRMode::get_now()
 {
-	return now;
+	while(!area.semaphore);
+	return area.now;
 }
 
 
@@ -106,7 +109,7 @@ float MRMode::get_speed()
 }
 
 
-float MRMode::get_direction()
+short MRMode::get_direction()
 {
 	return direction;
 }
@@ -120,18 +123,25 @@ float MRMode::get_time()
 
 float MRMode::get_speed_max()
 {
-	return params[now][Speed_max];
+	while(!area.semaphore);
+	return params[area.now][Speed_max];
 }
 
 
 short MRMode::get_dist_in_area()
 {
-	return dists[now] - dists[prev];
+	while(!area.semaphore);
+	return dists[area.now] - dists[area.prev];
+}
+
+unsigned char MRMode::get_leg_up()
+{
+	return leg_up;
 }
 
 
 //CANNavigationの指令, 総歩行量, 前後の光電センサのカウンタ
-void MRMode::plan(short navi_status, float navi_angle, short dist, unsigned int kouden_sd_f, unsigned int kouden_sd_r)
+void MRMode::plan(short navi_status, short navi_angle, short dist, unsigned int kouden_sd_f, unsigned int kouden_sd_r)
 {
 	sensor_update();
 	dists_update(dist);
@@ -151,16 +161,18 @@ void MRMode::sensor_update()
 	gerege.now = sw_gerege->read();
 
 	kouden_urtuu2->sensing();
+	kouden_dune_detect->sensing();
 }
 
 
 void MRMode::dists_update(short dist)
 {
-	dists[now] = dist;
+	while(!area.semaphore);
+	dists[area.now] = dist;
 }
 
 
-void MRMode::plan_velocity(short navi_status, float navi_angle)
+void MRMode::plan_velocity(short navi_status, short navi_angle)
 {
 	direction = navi_angle;
 
@@ -171,19 +183,23 @@ void MRMode::plan_velocity(short navi_status, float navi_angle)
 		break;
 
 	case CANNavigation::Walk:
-			speed = trapezoidal_control(speed, params[prev][Speed_max], params[now][Speed_max], 0.005, params[now][Time_change_speed]);
+		while(!area.semaphore);
+		speed = trapezoidal_control(speed, params[area.prev][Speed_max], params[area.now][Speed_max], 0.005, params[area.now][Time_change_speed]);
 		break;
 
 	case CANNavigation::SandDune:
-		speed = params[now][Speed_max];
+		while(!area.semaphore);
+		speed = params[area.now][Speed_max];
 		break;
 
 	case CANNavigation::Tussock:
-		speed =  trapezoidal_control(speed, params[prev][Speed_max], params[now][Speed_max], 0.005, params[now][Time_change_speed]);
+		while(!area.semaphore);
+		speed =  trapezoidal_control(speed, params[area.prev][Speed_max], params[area.now][Speed_max], 0.005, params[area.now][Time_change_speed]);
 		break;
 
 	case CANNavigation::MountainArea:
-		speed = params[now][Speed_max];
+		while(!area.semaphore);
+		speed = params[area.now][Speed_max];
 		break;
 
 	case CANNavigation::UukhaiZone:
@@ -191,19 +207,21 @@ void MRMode::plan_velocity(short navi_status, float navi_angle)
 		break;
 	}
 
-	if(cos(direction)<0)speed = -fabs(speed);
+	if(cos(((float)direction)*M_PI/180.0)<0)speed = -fabs(speed);
 }
 
 
 //CANNavigationのモード指示, 前後の光電センサのカウント
 short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned int kouden_sd_r)
 {
-	unsigned char leg_up = 0;
-	MRMode::Area area_now = now;
+	leg_up = 0;
+	MRMode::Area area_now = (Area)get_now();
 
 	switch(area_now){
 	case WaitGobiUrtuu:
-		if(navi_status==CANNavigation::MountainArea) set(MRMode::WaitMountainUrtuu);
+		if(navi_status==CANNavigation::SandDune) set(MRMode::SandDuneFront);
+		else if(navi_status==CANNavigation::Tussock) set(MRMode::Tussock);
+		else if(navi_status==CANNavigation::MountainArea) set(MRMode::WaitMountainUrtuu);
 		if(gerege.now && !gerege.prev) set(MRMode::GetGerege);
 		navi_status = CANNavigation::Stop;
 		break;
@@ -223,7 +241,9 @@ short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned in
 		break;
 
 	case GobiArea:
-		if(navi_status==CANNavigation::SandDune) set(MRMode::SandDuneFront);
+		if(navi_status==CANNavigation::SandDune){
+			if(kouden_dune_detect->get_counter() > 100)set(MRMode::SandDuneFront);
+		}
 		break;
 
 	case SandDuneFront:
@@ -236,6 +256,7 @@ short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned in
 //			if(kouden_sd_r < 700) set(MRMode::ReadyForTussock);
 //			else set(MRMode::SandDuneRear);
 //		}
+		//Rearから変更申請して次のモードへ移行
 		break;
 
 	case ReadyForTussock:
@@ -307,8 +328,6 @@ short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned in
 		navi_status = CANNavigation::Stop;
 		break;
 	}
-
-	can_sender->send_leg_up(CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::LegUp), leg_up);
 
 	return navi_status;
 }
