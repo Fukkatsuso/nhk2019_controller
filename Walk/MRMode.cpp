@@ -32,13 +32,13 @@ const float MRMode::params[MRMode::Area_end][MRMode::Params_end] =
 //MountainArea
 		{0,				0},		//WaitMountainUrtuu
 		{0,				0},		//GetSign
-		{240,			1.2},	//Start2
-		{250,			1},		//StartClimb1
-		{250,			0},		//StartClimb2
-		{250,			0},		//MountainArea
-		{250,			0},		//UukhaiZone
+		{240,			1.5},	//Start2
+		{270,			0},		//StartClimb1
+		{270,			0},		//StartClimb2
+		{270,			0},		//MountainArea
+		{270,			0},		//UukhaiZone
 //UukhaiZone
-		{250,			0},		//Uukhai
+		{270,			0},		//Uukhai
 		{50,			0}		//Finish2
 };
 
@@ -293,7 +293,7 @@ short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned in
 
 	case Start2:
 		navi_status = CANNavigation::Walk;
-		if(get_dist_in_area() > 490) set(MRMode::StartClimb1);
+		if(get_dist_in_area() > 490.0*1.2) set(MRMode::StartClimb1);
 		break;
 
 	case StartClimb1:
