@@ -47,6 +47,7 @@ int main(){
 	unsigned char kouden_sanddune_rear = 0;
 	short walk_dist = 0;//機体重心の総移動距離
 
+	short mrmode;
 	short speed = 0;
 	short direction = 0;//Slaveで適切に変換
 	short pitch = 0;
@@ -91,15 +92,19 @@ int main(){
 				counter_sanddune_rear //kouden_sanddune_rear
 				);
 
+		mrmode = MRmode.get_now();
+
 		//Gerege掲げる
-		if(MRmode.get_now() >= MRMode::Uukhai) cyl_gerege.write(1);
+		if(mrmode >= MRMode::Uukhai) cyl_gerege.write(1);
 		else cyl_gerege.write(0);
 
 		//Slaveへ送信
 		speed = (short)MRmode.get_speed();
-		direction = MRmode.get_direction();
+		direction = adjust_walk_direction(MRmode.get_direction());
 		pitch = 0;
 		leg_up = MRmode.get_leg_up();
+		if(mrmode==MRMode::SandDuneFront || mrmode==MRMode::SandDuneRear)
+			direction = 0;
 		can_sender.send_walk_command(CANID::generate(CANID::FromController, CANID::ToSlaveAll, CANID::WalkCommand),
 				MRmode.get_now(), speed, direction, pitch, leg_up);
 

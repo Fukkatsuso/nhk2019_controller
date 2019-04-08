@@ -47,6 +47,22 @@ unsigned int counter_update(unsigned int counter, unsigned char flag)
 }
 
 
+//歩行角度に補正かける
+int adjust_walk_direction(int direction){
+	//2PI以上の角度は切り落とす
+	int half = 180;
+	while(abs(direction) > half){
+		if(direction > half)direction -= half*2;
+		else if(direction < -half)direction += half*2;
+	}
+
+	//曲進角度を2倍に増幅:制限付き
+	//したかったけど考えるの面倒でやっぱりやめる
+
+	return direction;
+}
+
+
 //main用
 void stick_zero(int *stick, int margin){
 	if(*stick > margin)*stick -= margin;

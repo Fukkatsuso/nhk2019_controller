@@ -31,6 +31,8 @@ float trapezoidal_control(float now, float initial, float target, float roop_per
 //符号なし整数カウンタ更新
 unsigned int counter_update(unsigned int counter, unsigned char flag);
 
+int adjust_walk_direction(int direction);
+
 
 //main用
 void stick_zero(int *stick, int margin);
