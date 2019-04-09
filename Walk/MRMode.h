@@ -52,7 +52,7 @@ public:
 	};
 
 	MRMode(enum Area area_initial, CANSender *can_sender);
-	void set_sensors(DigitalIn *sw_gerege, PhotoelectricSensor *kouden_urtuu2, PhotoelectricSensor *kouden_dune_detect);
+	void set_sensors(DigitalIn *sw_gerege, DigitalIn *sw_stop, PhotoelectricSensor *kouden_urtuu2, PhotoelectricSensor *kouden_dune_detect);
 	void set_initial();
 	void set(enum Area area);
 //	void send();
@@ -83,7 +83,12 @@ private:
 		bool semaphore; //変更時:false, trueのときだけ読み込み可
 	}area;
 
+	struct{
+		bool sanddune;
+	}flag;
+
 	DigitalIn *sw_gerege;
+	DigitalIn *sw_stop;
 	PhotoelectricSensor *kouden_urtuu2;
 	PhotoelectricSensor *kouden_dune_detect;
 

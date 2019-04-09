@@ -41,6 +41,7 @@ extern Pspad ps;
  ************************/
 //extern PwmOut sv_gerege;
 extern DigitalIn sw_gerege;
+extern DigitalIn sw_stop;
 extern PhotoelectricSensor kouden_urtuu2_right;
 extern PhotoelectricSensor kouden_urtuu2_left;
 extern PhotoelectricSensor kouden_dune_detect;

@@ -19,13 +19,13 @@ const float MRMode::params[MRMode::Area_end][MRMode::Params_end] =
 		{0,				0},		//WaitGobiUrtuu
 		{0,				0},		//GetGerege
 		{0,				0},		//PrepareWalking
-		{50,			0},		//Start1 //80はGobiAreaのスピード初期値
-		{350/*240*/,			2/*1.2*/},	//GobiArea
+		{50,			0},		//Start1 //GobiAreaのスピード初期値
+		{350,			2},	//GobiArea
 //SandDune
 		{133,			0},		//SandDuneFront
 		{133,			0},		//SandDuneRear
 //Walk
-		{240,			1},		//ReadyForTussock
+		{350/*240*/,	2/*1*/},		//ReadyForTussock
 //Tussock
 		{200,			1},		//Tussock
 		{200,			1},		//Finish1
@@ -64,10 +64,11 @@ MRMode::MRMode(enum Area area_initial, CANSender *can_sender)
 }
 
 
-void MRMode::set_sensors(DigitalIn *sw_gerege,
+void MRMode::set_sensors(DigitalIn *sw_gerege, DigitalIn *sw_stop,
 		PhotoelectricSensor *kouden_urtuu2, PhotoelectricSensor *kouden_dune_detect)
 {
 	this->sw_gerege = sw_gerege;
+	this->sw_stop = sw_stop;
 	gerege.now = gerege.prev = sw_gerege->read();
 	this->kouden_urtuu2 = kouden_urtuu2;
 	this->kouden_dune_detect = kouden_dune_detect;
@@ -241,9 +242,9 @@ short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned in
 		break;
 
 	case GobiArea:
-		if(navi_status==CANNavigation::SandDune){
-			if(kouden_dune_detect->get_counter() > 100)set(MRMode::SandDuneFront);
-		}
+		if(navi_status==CANNavigation::SandDune)flag.sanddune = true;
+		if(flag.sanddune && kouden_dune_detect->get_counter() > 100)
+			set(MRMode::SandDuneFront);
 		break;
 
 	case SandDuneFront:
@@ -270,6 +271,10 @@ short MRMode::plan_mode(short navi_status, unsigned int kouden_sd_f, unsigned in
 			leg_up = 0xf; //最初は前脚のみ、少し待って後脚も上げるとかに変更?
 		if(navi_status==CANNavigation::Stop) set(MRMode::Finish1);
 		if(navi_status==CANNavigation::MountainArea){
+			navi_status = CANNavigation::Stop;
+			set(MRMode::Finish1);
+		}
+		if(sw_stop->read()){
 			navi_status = CANNavigation::Stop;
 			set(MRMode::Finish1);
 		}

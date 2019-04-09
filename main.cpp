@@ -56,6 +56,7 @@ int main(){
 	unsigned int counter_sanddune_front = 0;
 	unsigned int counter_sanddune_rear = 0;
 
+	sw_stop.mode(PullDown);
 	can.frequency(1000000);
 	can.attach(&CANrcv, CAN::RxIrq);
 	wait_ms(300); //全ての基板の電源が入るまで待つ
@@ -64,7 +65,7 @@ int main(){
 	PhotoelectricSensor *kouden_urtuu2 = &kouden_urtuu2_left; //赤ゾーン?
 //	PhotoelectricSensor *kouden_urtuu2 = &kouden_urtuu2_right; //青ゾーン?
 
-	MRmode.set_sensors(&sw_gerege, kouden_urtuu2, &kouden_dune_detect);
+	MRmode.set_sensors(&sw_gerege, &sw_stop, kouden_urtuu2, &kouden_dune_detect);
 
 	while(1){
 		AdjustCycle(5000);
@@ -132,7 +133,7 @@ int main(){
 //				if(ch=='c')cyl_gerege.write(1);
 //				else if(ch=='d')cyl_gerege.write(0);
 			pc.printf("mode:%2d  ", MRmode.get_now());
-			pc.printf("sw_g:%d  ", sw_gerege.read());
+			pc.printf("sw:%d %d  ", sw_gerege.read(), sw_stop.read());
 //			pc.printf("cyl:%1d  ", cyl_gerege.read());
 //			pc.printf("Rx:%3d  Ry:%3d  ", Rx, Ry);
 			pc.printf("speed:%3d  dir:%3d  ", speed, direction);
