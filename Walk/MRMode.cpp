@@ -20,7 +20,10 @@ const float MRMode::params[MRMode::Area_end][MRMode::Params_end] =
 		{0,				0},		//GetGerege
 		{0,				0},		//PrepareWalking
 		{50,			0},		//Start1 //GobiAreaのスピード初期値
-		{350,			2},	//GobiArea
+		{
+				350,
+//				400,
+				2},	//GobiArea
 //SandDune
 		{133,			0},		//SandDuneFront
 		{133,			0},		//SandDuneRear
